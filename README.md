@@ -1,95 +1,135 @@
+
+Passo 1: Configure um ambiente de desenvolvimento Django
+Antes de criar a aplicação, certifique-se de ter o Django instalado. Você pode instalá-lo usando o pip:
+
+bash
+pip install django
+Em seguida, crie um novo projeto Django e um aplicativo dentro do projeto:
+
+bash
+Copy code
+django-admin startproject imc_project
+cd imc_project
+python manage.py startapp imc_calculator
+Passo 2: Defina o modelo de dados
+Em seu aplicativo imc_calculator, defina o modelo de dados para representar as informações necessárias para calcular o IMC. Abra o arquivo models.py em seu aplicativo e adicione o seguinte código:
+
+python
+Copy code
+from django.db import models
+
+class Pessoa(models.Model):
+    nome = models.CharField(max_length=100)
+    peso = models.DecimalField(max_digits=5, decimal_places=2)
+    altura = models.DecimalField(max_digits=5, decimal_places=2)
+
+    def calcular_imc(self):
+        altura_metros = self.altura / 100  # Convertendo altura de cm para metros
+        return self.peso / (altura_metros ** 2)
+
+    def classificar_imc(self):
+        imc = self.calcular_imc()
+        if imc < 18.5:
+            return "Abaixo do peso"
+        elif 18.5 <= imc < 25:
+            return "Peso normal"
+        elif 25 <= imc < 30:
+            return "Acima do peso"
+        else:
+            return "Obesidade"
+
+    def __str__(self):
+        return self.nome
+Em seguida, crie as migrações e aplique-as ao banco de dados:
+
+bash
+Copy code
+python manage.py makemigrations
+python manage.py migrate
+Passo 3: Crie as visualizações
+Agora, crie as visualizações para permitir que os usuários insiram dados e vejam os resultados do IMC. Abra o arquivo views.py em seu aplicativo e adicione o seguinte código:
+
+python
+Copy code
+from django.shortcuts import render
+from .models import Pessoa
+
+def calcular_imc(request):
+    if request.method == 'POST':
+        nome = request.POST['nome']
+        peso = float(request.POST['peso'])
+        altura = float(request.POST['altura'])
+
+        pessoa = Pessoa(nome=nome, peso=peso, altura=altura)
+        pessoa.save()
+        classificacao = pessoa.classificar_imc()
+        return render(request, 'resultado.html', {'pessoa': pessoa, 'classificacao': classificacao})
+    return render(request, 'calcular_imc.html')
+Passo 4: Crie os templates HTML
+Crie os templates HTML para a entrada de dados e a exibição dos resultados. Crie uma pasta chamada templates em seu aplicativo e dentro dela crie dois arquivos: calcular_imc.html e resultado.html.
+
+calcular_imc.html:
+
+html
+Copy code
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculadora de IMC</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f2f2f2;
-            text-align: center;
-        }
-        
-        .calculator {
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-            width: 300px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        h1 {
-            color: #333;
-        }
-
-        input[type="text"] {
-            width: 100%;
-            padding: 10px;
-            margin-top: 10px;
-            margin-bottom: 20px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-
-        button {
-            background-color: #4CAF50;
-            color: #fff;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #45a049;
-        }
-
-        #result {
-            font-weight: bold;
-            color: #333;
-            margin-top: 10px;
-        }
-    </style>
 </head>
 <body>
-    <div class="calculator">
-        <h1>Calculadora de IMC</h1>
-        <input type="text" id="weight" placeholder="Peso (kg)">
-        <input type="text" id="height" placeholder="Altura (m)">
-        <button onclick="calculateIMC()">Calcular IMC</button>
-        <div id="result"></div>
-    </div>
-
-    <script>
-        function calculateIMC() {
-            var weight = parseFloat(document.getElementById('weight').value);
-            var height = parseFloat(document.getElementById('height').value);
-
-            if (!isNaN(weight) && !isNaN(height) && height > 0) {
-                var imc = weight / (height * height);
-                var result = "";
-
-                if (imc < 18.5) {
-                    result = "Abaixo do peso";
-                } else if (imc < 24.9) {
-                    result = "Peso normal";
-                } else if (imc < 29.9) {
-                    result = "Sobrepeso";
-                } else if (imc < 34.9) {
-                    result = "Obesidade grau 1";
-                } else if (imc < 39.9) {
-                    result = "Obesidade grau 2";
-                } else {
-                    result = "Obesidade grau 3";
-                }
-
-                document.getElementById('result').innerHTML = "Seu IMC é: " + imc.toFixed(2) + "<br>Classificação: " + result;
-            } else {
-                document.getElementById('result').innerHTML = "Por favor, insira um peso e altura válidos.";
-            }
-        }
-    </script>
+    <h1>Calculadora de IMC</h1>
+    <form method="post">
+        {% csrf_token %}
+        <label for="nome">Nome:</label>
+        <input type="text" name="nome" required><br>
+        <label for="peso">Peso (kg):</label>
+        <input type="number" name="peso" step="0.01" required><br>
+        <label for="altura">Altura (cm):</label>
+        <input type="number" name="altura" step="0.01" required><br>
+        <input type="submit" value="Calcular">
+    </form>
 </body>
 </html>
+resultado.html:
+
+html
+Copy code
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Resultado do IMC</title>
+</head>
+<body>
+    <h1>Resultado do IMC</h1>
+    <p>Nome: {{ pessoa.nome }}</p>
+    <p>Peso: {{ pessoa.peso }} kg</p>
+    <p>Altura: {{ pessoa.altura }} cm</p>
+    <p>IMC: {{ pessoa.calcular_imc }}</p>
+    <p>Classificação: {{ classificacao }}</p>
+    <a href="{% url 'calcular_imc' %}">Calcular novamente</a>
+</body>
+</html>
+Passo 5: Configure as URLs
+Em seu aplicativo, crie um arquivo urls.py e adicione o seguinte código:
+
+python
+Copy code
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('', views.calcular_imc, name='calcular_imc'),
+]
+Passo 6: Configure as URLs do projeto principal
+Em seu projeto principal, abra o arquivo urls.py e adicione o seguinte código para incluir as URLs do aplicativo imc_calculator:
+
+python
+Copy code
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('imc/', include('imc_calculator.urls')),
+]
