@@ -62,3 +62,22 @@ calcular_imc.html
     </form>
 </body>
 </html>
+
+
+resultado.html:
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Resultado do IMC</title>
+</head>
+<body>
+    <h1>Resultado do IMC</h1>
+    <p>Nome: {{ pessoa.nome }}</p>
+    <p>Peso: {{ pessoa.peso }} kg</p>
+    <p>Altura: {{ pessoa.altura }} cm</p>
+    <p>IMC: {{ pessoa.calcular_imc }}</p>
+    <p>Classificação: {{ classificacao }}</p>
+    <a href="{% url 'calcular_imc' %}">Calcular novamente</a>
+</body>
+</html>
