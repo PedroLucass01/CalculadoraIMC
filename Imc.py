@@ -41,3 +41,24 @@ def calcular_imc(request):
     return render(request, 'calcular_imc.html')
   
  Criar templates em html 
+calcular_imc.html
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Calculadora de IMC</title>
+</head>
+<body>
+    <h1>Calculadora de IMC</h1>
+    <form method="post">
+        {% csrf_token %}
+        <label for="nome">Nome:</label>
+        <input type="text" name="nome" required><br>
+        <label for="peso">Peso (kg):</label>
+        <input type="number" name="peso" step="0.01" required><br>
+        <label for="altura">Altura (cm):</label>
+        <input type="number" name="altura" step="0.01" required><br>
+        <input type="submit" value="Calcular">
+    </form>
+</body>
+</html>
