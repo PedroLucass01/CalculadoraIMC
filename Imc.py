@@ -81,3 +81,12 @@ resultado.html:
     <a href="{% url 'calcular_imc' %}">Calcular novamente</a>
 </body>
 </html>
+
+url.py
+
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('', views.calcular_imc, name='calcular_imc'),
+]
