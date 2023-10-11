@@ -90,3 +90,14 @@ from . import views
 urlpatterns = [
     path('', views.calcular_imc, name='calcular_imc'),
 ]
+
+
+Em seu projeto principal, abra o arquivo urls.py e adicione o seguinte código para incluir as URLs do aplicativo imc_calculator:
+
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('imc/', include('imc_calculator.urls')),
+]
